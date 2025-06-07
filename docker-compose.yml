@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: my_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123@Jayraj
+      POSTGRES_DB: streaming
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  
+  backend:
+    build:
+      context: ./backend          # 👈 Build context is backend folder
+      dockerfile: Dockerfile
+    container_name: node_backend
+    ports:
+      - "3001:${PORT}"
+    depends_on:
+      - postgres
+    env_file:
+      - .env                      # 👈 Loads from root .env
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app           # 👈 Map backend code
+      - /app/node_modules
+    working_dir: /app
+    command: npm run dev
+
+  # mediamtx:
+  #   image: bluenviron/mediamtx
+  #   container_name: media_server
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8889:8889"
+  #   volumes:
+  #     - ./mediamtx.yml:/mediamtx.yml
+  #   command: /mediamtx.yml
+
+  frontend:
+    build:
+      context: ./frontendjm          # 👈 Build context is backend folder
+      dockerfile: Dockerfile
+    ports:
+      - "4173:4173"
+    container_name: frontend
+    restart: unless-stopped
+
+    
+volumes:
+  pgdata:
